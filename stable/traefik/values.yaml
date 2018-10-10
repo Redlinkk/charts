@@ -108,7 +108,7 @@ kvprovider:
     #   key: "/etc/ssl/consul.key"
     #   insecureSkipVerify: true
     #
-  consul:
+  # consul:
     # endpoint: consul-service:8500
     # watch: true
     # prefix: traefik
@@ -120,7 +120,7 @@ kvprovider:
     # filename: consul.tmpl
     # username: foo
     # password: bar
-    token: ""
+    # token: 0123456789abcdef
     # tls:
     #   ca: "/etc/ssl/ca.crt"
     #   cert: "/etc/ssl/consul.crt"
