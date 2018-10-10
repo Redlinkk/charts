@@ -1,0 +1,34 @@
+{{- if .Values.kvprovider.consul }}
+{{- if and .Values.kvprovider.consul.token .Values.kvprovider.consul.mgmtToken }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "add-consul-acl-job"
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": hook-succeeded
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app: {{ template "traefik.name" . }}
+spec:
+  template:
+    metadata:
+      name: "add-consul-acl-job"
+      labels:
+        app: {{ template "traefik.name" . }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    spec:
+      restartPolicy: Never
+      containers: 
+      - name: add-consul-acl-job
+        image: appropriate/curl:latest
+        args:
+        - -X 
+        - PUT
+        - --header
+        - 'X-Consul-Token: {{ .Values.kvprovider.consul.mgmtToken }}'
+        - --data
+        - '{ "Name": "Traefik", "Type": "client", "Rules": "key \"{{ .Values.kvprovider.consul.prefix }}/\" { policy = \"write\" } session \"\" { policy = \"write\" }", "ID": "{{ .Values.kvprovider.consul.token }}"}'
+        - http://{{ .Values.kvprovider.consul.endpoint }}/v1/acl/create
+{{- end }}
+{{- end }}

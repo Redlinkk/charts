@@ -121,6 +121,7 @@ kvprovider:
     # username: foo
     # password: bar
     # token: 0123456789abcdef
+    # mgmtToken: mastertoken
     # tls:
     #   ca: "/etc/ssl/ca.crt"
     #   cert: "/etc/ssl/consul.crt"
