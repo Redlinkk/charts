@@ -136,6 +136,8 @@ The cases when the attempt to preconfigure the GoCD server fails:
 1. The service account token mounted as a secret for the GoCD server pod does not have sufficient permissions. The API call to configure the plugin settings will fail.
 2. If the GoCD server is started with an existing configuration with security configured, then the API calls in the preconfigure script will fail. 
 
+It is also possible to configure the GoCD server with json files in the `config` directory. Each category (pipelines, templates, ...) is pushed in alphabetical order. This is especially important for pipeline dependencies.
+
 #### SSH keys
 For accessing repositories over SSH in GoCD server, you need to add SSH keys to the GoCD server.
 Generate a new keypair, fetch the host key for the [host] you want to connect to and create the secret.

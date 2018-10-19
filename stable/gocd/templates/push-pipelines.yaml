@@ -1,0 +1,44 @@
+{{- $root := . }}
+{{- range $path, $bytes := .Files.Glob "config/pipelines/**.json" }}
+{{- $filename := base $path }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "push-{{ trimSuffix (ext $filename) $filename }}-pipeline"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+  labels:
+    chart: "{{ $root.Chart.Name }}-{{ $root.Chart.Version }}"
+    app: "{{ template "gocd.name" $root }}"
+    heritage: "{{ $root.Release.Service }}"
+    release: "{{ $root.Release.Name }}"
+spec:
+  template:
+    metadata:
+      name: "push-{{ trimSuffix (ext $filename) $filename }}-pipeline"
+      labels:
+        chart: "{{ $root.Chart.Name }}-{{ $root.Chart.Version }}"
+        app: "{{ template "gocd.name" $root }}"
+        heritage: "{{ $root.Release.Service }}"
+        release: "{{ $root.Release.Name }}"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: "push-{{ trimSuffix (ext $filename) $filename }}-pipeline"
+        image: appropriate/curl:latest
+        args:
+        - http://{{ template "gocd.fullname" $root }}-server.{{ $root.Release.Namespace }}.svc.cluster.local:8153/go/api/admin/pipelines 
+        - --fail
+        - -X
+        - POST 
+        - -H
+        - 'Accept: application/vnd.go.cd.v6+json' 
+        - -H 
+        - 'Content-Type: application/json' 
+        - -d 
+        - |-
+{{ $root.Files.Get $path | indent 10 }}
+{{- end }}

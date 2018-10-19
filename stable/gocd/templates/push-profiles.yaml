@@ -1,0 +1,44 @@
+{{- $root := . }}
+{{- range $path, $bytes := .Files.Glob "config/profiles/**.json" }}
+{{- $filename := base $path }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "push-{{ trimSuffix (ext $filename) $filename }}-profile"
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "3"
+    "helm.sh/hook-delete-policy": hook-succeeded
+  labels:
+    chart: "{{ $root.Chart.Name }}-{{ $root.Chart.Version }}"
+    app: "{{ template "gocd.name" $root }}"
+    heritage: "{{ $root.Release.Service }}"
+    release: "{{ $root.Release.Name }}"
+spec:
+  template:
+    metadata:
+      name: "push-{{ trimSuffix (ext $filename) $filename }}-profile"
+      labels:
+        chart: "{{ $root.Chart.Name }}-{{ $root.Chart.Version }}"
+        app: "{{ template "gocd.name" $root }}"
+        heritage: "{{ $root.Release.Service }}"
+        release: "{{ $root.Release.Name }}"
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: "push-{{ trimSuffix (ext $filename) $filename }}-profile"
+        image: appropriate/curl:latest
+        args:
+        - http://{{ template "gocd.fullname" $root }}-server.{{ $root.Release.Namespace }}.svc.cluster.local:8153/go/api/elastic/profiles
+        - --fail
+        - -X
+        - POST
+        - -H
+        - 'Accept: application/vnd.go.cd.v1+json'
+        - -H
+        - 'Content-Type: application/json'
+        - -d
+        - |-
+{{ $root.Files.Get $path | indent 10 }}
+{{- end }}
